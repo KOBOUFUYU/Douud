@@ -1,81 +1,100 @@
 {{ define "main" }}
-    <h3 class="section-title">
-        {{ if eq .Parent (.GetPage "/") }}
-            {{ T "list.section" }}
-        {{ else }}
-            {{ .Parent.Title }}
-        {{ end }}
-    </h3>
-
-    <div class="section-card">
-        <div class="section-details">
-            <h3 class="section-count">{{ T "list.page" (len .Pages) }}</h3>
-            <h1 class="section-term">{{ .Title }}</h1>
-            {{ with .Params.description }}
-                <h2 class="section-description">{{ . }}</h2>
-            {{ end }}
-        </div>
-
-        {{- $image := partialCached "helper/image" (dict "Context" . "Type" "section") .RelPermalink "section" -}}
-        {{ if $image.exists }}
-            <div class="section-image">
-                {{ if $image.resource }}
-                    {{- $Permalink := $image.resource.RelPermalink -}}
-                    {{- $Width := $image.resource.Width -}}
-                    {{- $Height := $image.resource.Height -}}
-
-                    {{- if (default true .Page.Site.Params.imageProcessing.cover.enabled) -}}
-                        {{- $thumbnail := $image.resource.Fill "120x120" -}}
-                        {{- $Permalink = $thumbnail.RelPermalink -}}
-                        {{- $Width = $thumbnail.Width -}}
-                        {{- $Height = $thumbnail.Height -}}
-                    {{- end -}}
-                    
-                    <img src="{{ $Permalink }}" 
-                        width="{{ $Width }}"
-                        height="{{ $Height }}" 
-                        loading="lazy">
-                {{ else }}
-                    <img src="{{ $image.permalink }}" loading="lazy" />
-                {{ end }}
-            </div>
-        {{ end }}
-    </div>
-
-    {{- $subsections := .Sections -}}
-    {{- $pages := .Pages | complement $subsections -}}
-    
-    {{- if eq (len $pages) 0 -}}
-        {{/* If there are no normal pages, display subsections in list style, with pagination */}}
-        {{/* This happens with taxonomies like categories or tags */}}
-        {{- $pages = $subsections -}}
-        {{- $subsections = slice -}}
+    {{- $path := "" -}}
+    {{- with .File -}}
+        {{- $path = .Path -}}
+    {{- else -}}
+        {{- $path = .Path -}}
     {{- end -}}
 
-    {{- with $subsections -}}
-        <h2 class="section-title">{{ T "list.subsection" (len $subsections) }}</h2>
-        <div class="subsection-list">
-            <div class="article-list--tile">
-                {{ range . }}                  
-    				{{ partial "article-list/tile" (dict "context" . "size" "250x150" "Type" "section") }}
-                {{ end }}
+    {{ if and (eq .Kind "section") .Content }}
+        {{ partial "pages/post.html" . }}
+    {{ else }}
+        <main class="main list" id="main">
+            <div class="main-inner">
+                <div class="content list-group">
+                    {{ if .Site.Params.displayListTitle }}
+                        {{ if (eq .Kind "section") }}
+                            <h1 class="list-title">{{ .Title | default (delimit (last 1 (split (strings.TrimSuffix "/_index.md" $path) "/")) " ") }}</h1>
+                        {{ end }}
+                        {{ if (eq .Kind "term") }}
+                            <h1 class="list-title">{{ .Title | default .Data.Term | default (delimit (last 1 (split (strings.TrimSuffix "/_index.md" $path) "/")) " ") }}</h1>
+                        {{ end }}
+                    {{ end }}
+
+                    {{ .Scratch.Delete "pages" }}
+
+                    <!-- Section -->
+                    {{ if (eq .Kind "section") }}
+                        <!-- Archives -->
+                        {{ if (eq .Section "archives") }}
+                            {{ $pages := (where .Site.RegularPages "Section" "in" .Site.Params.mainSections) }}
+                            {{ .Scratch.Set "pages" $pages }}
+                        <!-- Regular Section -->
+                        {{ else }}
+                            {{ $sectionPage := .CurrentSection }}
+                            {{ range .Site.RegularPages }}
+                                {{ if (.IsDescendant $sectionPage) }}
+                                    {{ $.Scratch.Add "pages" (slice .) }}
+                                {{ end }}
+                            {{ end }}
+                        {{ end }}
+                    {{ end }}
+
+                    <!-- Taxonomy (See `taxonomy` folder) -->
+
+                    <!-- Taxonomy Term -->
+                    {{ if (eq .Kind "term") }}
+                        {{ $pages := .Pages }}
+                        {{ $.Scratch.Set "pages" $pages }}
+                    {{ end }}
+
+                    <!-- Start List -->
+                    {{ $pages := .Scratch.Get "pages" }}
+                    {{ range $pages.GroupByDate "2006" }}
+                        {{ $.Scratch.Delete "zodiacName" }}
+                        {{ if $.Site.Params.chineseZodiac }}
+                            {{ $zodiacName := (index $.Site.Data.ChineseZodiac (string (mod .Key 12))) }}
+                            {{ $.Scratch.Set "zodiacName" $zodiacName }}
+                        {{ end }}
+                        {{ $zodiacName := $.Scratch.Get "zodiacName" }}
+                        {{ $.Scratch.Delete "year" }}
+                        {{ if $.Site.Params.i18nYear }}
+                            {{ $key := .Key }}
+                            {{ $.Scratch.Delete "num" }}
+                            {{ range (slice 1 2 3 4) }}
+                                {{ $.Scratch.Add "num" (slice (substr $key (sub . 1) 1)) }}
+                            {{ end }}
+                            {{ $num := $.Scratch.Get "num" }}
+                            {{ $.Scratch.Delete "i18nNum" }}
+                            {{ range $num }}
+                                {{ $.Scratch.Add "i18nNum" (i18n .) }}
+                            {{ end }}
+                            {{ $i18nNum := $.Scratch.Get "i18nNum" }}
+                            {{ $.Scratch.Set "year" $i18nNum }}
+                        {{ else }}
+                            {{ $.Scratch.Set "year" .Key }}
+                        {{ end }}
+                        {{ $year := $.Scratch.Get "year" }}
+                        <h2 class="list-year">{{ $year }}{{ if $.Site.Params.chineseZodiac }}{{ partial "utils/icon.html" (dict "$" $ "name" $zodiacName "class" "chinese-zodiac") }}{{ end }}</h2>
+                        {{ if $.Site.Params.groupByMonth }}
+                            {{ range .Pages.GroupByDate "January" }}
+                                {{ $.Scratch.Delete "month" }}
+                                {{ if $.Site.Params.i18nMonth }}
+                                    {{ $month := i18n (lower .Key) }}
+                                    {{ $.Scratch.Set "month" $month }}
+                                {{ else }}
+                                    {{ $.Scratch.Set "month" .Key }}
+                                {{ end }}
+                                {{ $month := $.Scratch.Get "month" }}
+                                <h3 class="list-month">{{ $month }}</h3>
+                                {{ partial "utils/list-item.html" (dict "$" .) }}
+                            {{ end }}
+                        {{ else }}
+                            {{ partial "utils/list-item.html" (dict "$" .) }}
+                        {{ end }}
+                    {{ end }}
+                </div>
             </div>
-        </div>
-    {{- end -}}
-    
-    {{/* List only pages that are not a subsection */}}
-    {{ $paginator := .Paginate $pages }}
-    <section class="article-list--compact">
-        {{ range $paginator.Pages }}
-            {{ partial "article-list/compact" . }}
-        {{ end }}
-    </section>
-
-    {{- partial "pagination.html" . -}}
-
-    {{ partialCached "footer/footer" . }}
-{{ end }}
-
-{{ define "right-sidebar" }}
-    {{ partialCached "sidebar/right.html" . }}
+        </main>
+    {{ end }}
 {{ end }}

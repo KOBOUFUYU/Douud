@@ -11,7 +11,7 @@ menu:
         name: 浮莲子
         weight: -90
         params:
-            icon: feicha
+            icon: beach
         
 ---
 <style>

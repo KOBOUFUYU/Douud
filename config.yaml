@@ -28,7 +28,9 @@ params:
     featuredImageField: image
     rssFullContent: true
     favicon:
-
+    
+    enableimgloop: true
+    
     footer:
         since: 2023
         customText:
@@ -54,8 +56,8 @@ params:
             default: Licensed under CC BY-NC-SA 4.0
 
     comments:
-        enabled: true
-        provider: disqus
+        enabled: false
+        provider: 
 
         disqusjs:
             shortname:

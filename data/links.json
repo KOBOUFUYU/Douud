@@ -6,9 +6,15 @@
      "description": "七元一根"
     },
 	{
+        "title": "纸糖织猫",
+        "website": "https://brsu.me/",
+        "image": "blackcandy.png",
+     "description": "真男人就要操鲑坝"
+    },
+	{
         "title": "古事記·往古之追慕",
         "website": "https://miko.org/~uraki/kuon/furu/furu_index1.htm",
-        "image": "",
+        "image": "book.png",
      "description": "日本文献资料"
     }
 ]

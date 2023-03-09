@@ -1,5 +1,5 @@
 ---
-title: "Friends"
+title: "浮莲子"
 date: 2019-05-28
 description: 
 slug: "links"
@@ -8,10 +8,10 @@ comments: false
 license: false
 menu: 
     main:
-        name: friends
+        name: 浮莲子
         weight: -90
         params:
-            icon: home
+            icon: feicha
         
 ---
 <style>

@@ -3,6 +3,8 @@ title: 日常 | 网站建设计划
 description: 反正也会赶不上变化
 date: 2023-03-09
 image: 0.jpg
+tags:
+  - Hugo
 categories:
     - 这是猫眼螺
 ---

@@ -27,7 +27,7 @@ params:
         - post
     featuredImageField: image
     rssFullContent: true
-    favicon: images/favicon.ico
+    favicon: /favicon.ico
     
     enableimgloop: true
     

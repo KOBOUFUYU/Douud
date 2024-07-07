@@ -2,7 +2,6 @@
 title: 碎屑 | 艰难支撑的日常
 description: 但愿我能活到一切变好的那日
 date: 2024-07-07
-image: 0.jpg
 tags:
   - 日记
 categories:
